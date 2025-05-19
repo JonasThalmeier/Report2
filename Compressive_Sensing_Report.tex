@@ -1,0 +1,79 @@
+\documentclass[ngerman]{scrartcl}
+\usepackage{personal}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{parskip}
+%\lstset{numbers=left, frame=tblr, basicstyle=\tiny, tabsize=3}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+    \vspace{15cm}
+    \huge{Lab 2}\\
+    \vspace{2cm}
+    \Huge{AML}\\
+    \vspace{2cm}
+    \Large{Elia Faure-Rolland}\\
+    \Large{Tarek Saade}\\
+    \Large{Ana Martinez}\\
+    \Large{Jonas Thalmeier}\\
+    \vspace{1cm}
+    19/05/2025
+\end{center}
+\vspace{3cm}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.5\textwidth]{Figures/Eurecom.png}
+\end{figure}
+\end{titlepage}
+
+%\newpage
+%\tableofcontents
+\thispagestyle{empty}
+\newpage
+\setcounter{page}{1}
+
+\section{Introduction}
+
+
+
+\section{Model Architecture}
+Given that the task involves binary image classification, we selected a Convolutional Neural Network as our model architecture, which can be seen in Figure \ref{fig:model}. CNNs are particularly effective for processing image data, as they are designed to capture spatial hierarchies and local patterns. The input images in our dataset are low-resolution (32 × 32 pixels), which informed our choice to build a lightweight architecture that avoids excessive depth or complexity. The network, implemented in PyTorch, consists of two convolutional layers with ReLU activations to extract local features, followed by max-pooling operations to downsample the feature maps and reduce dimensionality. These are followed by a fully connected hidden layer that integrates the learned features.
+Dropout regularization is applied before the final dense layer to reduce the risk of overfitting.\\ Since we used \texttt{BCEWithLogitsLoss} for training, which internally applies a sigmoid activation to convert logits into probabilities, we did not include a separate sigmoid function in the model architecture.\\ The architecture was intentionally kept simple to reduce computational overhead and training time while maintaining sufficient expressiveness to learn the relevant patterns. This design choice not only enables fast experimentation and tuning but also ensures compatibility with deployment in resource-constrained environments.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\textwidth]{cactus_classifier_architecture.png}
+    \caption{Model Architecture.}
+    \label{fig:model}
+\end{figure}
+
+
+
+\end{document}
