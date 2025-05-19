@@ -64,16 +64,79 @@
 
 
 
-\section{Model Architecture}
-Given that the task involves binary image classification, we selected a Convolutional Neural Network as our model architecture, which can be seen in Figure \ref{fig:model}. CNNs are particularly effective for processing image data, as they are designed to capture spatial hierarchies and local patterns. The input images in our dataset are low-resolution (32 × 32 pixels), which informed our choice to build a lightweight architecture that avoids excessive depth or complexity. The network, implemented in PyTorch, consists of two convolutional layers with ReLU activations to extract local features, followed by max-pooling operations to downsample the feature maps and reduce dimensionality. These are followed by a fully connected hidden layer that integrates the learned features.
-Dropout regularization is applied before the final dense layer to reduce the risk of overfitting.\\ Since we used \texttt{BCEWithLogitsLoss} for training, which internally applies a sigmoid activation to convert logits into probabilities, we did not include a separate sigmoid function in the model architecture.\\ The architecture was intentionally kept simple to reduce computational overhead and training time while maintaining sufficient expressiveness to learn the relevant patterns. This design choice not only enables fast experimentation and tuning but also ensures compatibility with deployment in resource-constrained environments.
+
+\section{Method 2: LSTMs for frame prediction}
+
+As a second method, we adopted a different approach from the first. 
+Initially, we visualized various samples from the dataset by sampling the audio file with a sample rate of 16k, using a mono channel, to better understand the main differences between anomalous and normal data. 
+We represented the audio signals in both the time and frequency domains and highlighted the key distinctions between samples from the two groups.
+\\Since the representation in the frequency domain alone did not prove meaningful for our task, we decided to proceed by applying a representation on the spectrogram \ref{fig:spectograms},
+ enabling visualization of variations in both time and frequency domains. Figure \ref{fig:spectograms} shows two signals, respectively anomalous and normal. 
+ We observe that the anomalous signal is characterized by higher frequencies occurring at intervals defined in the time domain, while the anomalous signal is more regular and stable.
+
+Our method is based on dividing the signal into frames and using an LSTM model to predict the next frame. The strategy can be summarized in the following steps:
+\begin{enumerate}
+  \item Train an LSTM model on the training data (consisting only of normal data) to learn the normal behavior.
+  \item Test the model on an evaluation set, taken from the training data, to assess its performance on unseen normal samples.
+  \item Compute the prediction error to define a classification threshold \( T \).
+  \item Test the model on the test set and compute the error for each sample. If the sample’s error exceeds \( T \), classify it as anomalous data.
+\end{enumerate}
+
+
+In particular, the spectrogram of each sample was characterized by 313 frames (in the time domain) with 128 features each (each feature corresponds to a frequency value). 
+We used a sliding window to define sequences of 10 frames and built the ground truth as the next frame of the spectrogram. 
+This resulted in 303 sequences for each sample, and a total of \(303 \times \text{\#input\_dimension}\) sequences for the training set.
+We subsequently trained a 2-layer LSTM with an input size of 128 and a hidden size of 256 for 10 epochs, using a learning rate of \texttt{1e-3} and  abatch size of 32.
+
+For phase \(2\), the model was evaluated on the evaluation set, and for each sample we computed the average prediction error across all 303 sequences.
+Then, we calculated the overall average prediction error and variance across all samples. 
+
+We tested different threshold values, both considering the variance and ignoring it, and observed the best performance on the test set.
+
+Finally, we plotted the ROC curve to determine the best threshold value.
+
+Figure \ref{fig:rocLSTM} shows the ROC curve obtained by considering all possible threshold values from the evaluation phase. The final AUC (Area Under the Curve) value was 0.9406, which represents our best result and is close to the ideal case where the True Positive Rate is 1 and the False Positive Rate is 0.
+
+We also computed the optimal threshold value by selecting the point on the ROC curve closest to the top-left corner, which corresponds to the ideal classifier with a True Positive Rate of 1 and a False Positive Rate of 0. 
+This was done by calculating the Euclidean distance between each point \((\text{FPR}, \text{TPR})\) on the curve and the point \((0, 1)\), and choosing the threshold that minimizes this distance. 
+The best threshold found was approximately 0.001688, which is close to the mean prediction error observed during the evaluation phase.
+
+
+As shown in Table \ref{tab:results}, setting the threshold to 0.001688 yielded strong performance metrics in terms of precision, recall, and overall F1 score.
+
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.3\textwidth]{cactus_classifier_architecture.png}
-    \caption{Model Architecture.}
-    \label{fig:model}
+    \includegraphics[width=.5\textwidth]{C:/Users/elyfa/OneDrive - eurecom.fr/AML/Report2/Figures/ROC\_LSTM.png}
+    \caption{ROC curve for the LSTM model}
+    \label{fig:rocLSTM}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.5\textwidth]{C:/Users/elyfa/OneDrive - eurecom.fr/AML/Report2/Figures/spectograms.png}
+    \caption{Spectrograms for Anomalous (top) and Normal samples (bottom). As we can observe normal samples are characterized by more stability and lower frequencies.}
+    \label{fig:spectograms}
 \end{figure}
 
 
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Class & Precision & Recall & F1-score \\
+        \hline
+        normal  & 0.76  & 0.90   & 0.82   \\
+        anomalous  & 0.96  & 0.89  & 0.92  \\
+        \hline
+    \end{tabular}
+    \caption{Results for LSTM classifier with threshold 0.001688.}
+    \label{tab:results}
+\end{table}
 
+
+
+
+
+
+\section{Model Architecture}
 \end{document}
