@@ -199,7 +199,11 @@ Our third approach leverages a GRU-based autoencoder to detect anomalies through
 \end{table}
 \noindent While this method simplifies anomaly detection to a reconstruction task, its performance lags slightly behind Method II's LSTM predictor.%, likely due to the autoencoder's tendency to "memorize" normal patterns rather than learn temporally sensitive transitions. Hybrid architectures combining prediction and reconstruction objectives could mitigate this limitation.
 
+\section{Conclusion}
 
+This project addressed Anomalous Sound Detection (ASD) for a "Slide Rail" machine, training models exclusively on normal operational sounds to replicate DCASE challenge conditions. We explored three methods: \textbf{VGGish} embeddings with\textbf{ One-Class SVM}, an \textbf{LSTM} for next-frame prediction on spectrograms, and a \textbf{GRU-based autoencoder} for sequence reconstruction.
 
-\section{Model Architecture}
+Comparative evaluation revealed that the\textbf{ LSTM-based} frame prediction model (Method II) delivered the strongest performance. It achieved a superior Area Under the \textbf{ROC Curve} (AUC) of \textbf{0.9406} and an \textbf{F1-score} of\textbf{ 0.92} for detecting anomalies.\\
+This indicates that modeling temporal sequences in spectrograms via LSTMs was more effective for identifying deviations from normal machine operation than the feature-based SVM or the GRU autoencoder's reconstruction approach for this dataset. The LSTM's ability to capture normal sound patterns and flag deviations proved most successful in this unsupervised anomaly detection task.
+
 \end{document}
