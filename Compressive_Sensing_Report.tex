@@ -1,7 +1,8 @@
 \documentclass[ngerman]{scrartcl}
+\usepackage{graphicx}
 \usepackage{personal}
 \usepackage{wrapfig}
-\usepackage{graphicx}
+\usepackage{booktabs}
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{parskip}
@@ -65,7 +66,7 @@
 
 
 
-\section{Method 2: LSTMs for frame prediction}
+\section{Method II: LSTMs for frame prediction}
 
 As a second method, we adopted a different approach from the first. 
 Initially, we visualized various samples from the dataset by sampling the audio file with a sample rate of 16k, using a mono channel, to better understand the main differences between anomalous and normal data. 
@@ -106,14 +107,14 @@ As shown in Table \ref{tab:results}, setting the threshold to 0.001688 yielded s
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=.5\textwidth]{C:/Users/elyfa/OneDrive - eurecom.fr/AML/Report2/Figures/ROC\_LSTM.png}
+    \includegraphics[width=.5\textwidth]{./Figures/ROC\_LSTM.png}
     \caption{ROC curve for the LSTM model}
     \label{fig:rocLSTM}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=.5\textwidth]{C:/Users/elyfa/OneDrive - eurecom.fr/AML/Report2/Figures/spectograms.png}
+    \includegraphics[width=.5\textwidth]{./Figures/spectograms.png}
     \caption{Spectrograms for Anomalous (top) and Normal samples (bottom). As we can observe normal samples are characterized by more stability and lower frequencies.}
     \label{fig:spectograms}
 \end{figure}
@@ -133,8 +134,41 @@ As shown in Table \ref{tab:results}, setting the threshold to 0.001688 yielded s
     \label{tab:results}
 \end{table}
 
+\section{Method III: GRU Autoencoder for Sequence Reconstruction}
 
+Our third approach leverages a GRU-based autoencoder to detect anomalies through sequence reconstruction. Unlike the frame prediction strategy in Method II, this method focuses on reconstructing entire input sequences and uses the reconstruction error as an anomaly score. The implementation follows these steps:
 
+\begin{enumerate}
+  \item \textbf{Spectrogram Extraction:} As for Method II, convert the audio to log-mel spectrograms (128 mel bands, 16 kHz sampling rate), yielding time-frequency matrices of shape \(T \times 128\) with \(T=313\).
+  \item \textbf{Sliding Window Processing:} Generate input sequences using a sliding window of 10 frames (\(T_{\text{seq}} = 10\)), creating \(T - 10\) sequences per sample. Normal training data produces \(303\) sequences per sample on average.
+  \item \textbf{Autoencoder Design:} A 2-layer GRU encoder (hidden size 256) compresses sequences into latent states. A symmetric GRU decoder reconstructs the input from these states, followed by a linear layer to match the input dimension (128).
+  \item \textbf{Training:} Minimize mean squared error (MSE) between input and reconstructed sequences using Adam (\(\text{lr} = 10^{-3}\), batch size 64) for 10 epochs.
+  \item \textbf{Threshold Calibration:} Plot the ROC curve for the training set to determine the optimal threshold. In this case a TPR of 0.8 was chosen, corresponding to a FPR of 0.123. The resulting threshold was \(\tau = 0.000511\).
+  \item \textbf{Inference:} For test samples, average the MSE across all sequences. Classify samples as anomalous if their average MSE exceeds \(T\).
+\end{enumerate}
+
+\noindent The model achieved a validation MSE of \(0.000484 \pm 0.000050\), indicating stable reconstruction of normal patterns. On the test set, it attained an AUC of \(0.892\), with precision-recall trade-offs shown in Table~\ref{tab:gru_results}. The ROC curve (Figure~\ref{fig:rocGRU}) visualizes that the chosen threshold \(\tau\) effectively balances false positives and true positives (FPR = 12.3\%, TPR = 80.0\%).
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{./Figures/ROC_Autoenc.png}
+    \caption{ROC curve for the GRU autoencoder (AUC = 0.892). The red marker indicates the 90th-percentile threshold.}
+    \label{fig:rocGRU}
+\end{figure}
+\noindent The GRU autoencoder's performance is summarized in Table~\ref{tab:gru_results}. The model achieved a precision of 0.94 and a recall of 0.80 for the anomalous class, indicating its ability to identify anomalies effectively. However, the precision for the normal class was lower at 0.62, suggesting that some normal samples were misclassified as anomalies.
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lccc}
+        \toprule
+        Class & Precision & Recall & F1-score \\
+        \midrule
+        Normal & 0.62 & 0.87 & 0.72 \\
+        Anomaly & 0.94 & 0.80 & 0.87 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Performance of the GRU autoencoder at \(T = 0.000511\).}
+    \label{tab:gru_results}
+\end{table}
+\noindent While this method simplifies anomaly detection to a reconstruction task, its performance lags slightly behind Method II's LSTM predictor.%, likely due to the autoencoder's tendency to "memorize" normal patterns rather than learn temporally sensitive transitions. Hybrid architectures combining prediction and reconstruction objectives could mitigate this limitation.
 
 
 
