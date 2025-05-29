@@ -122,8 +122,7 @@ For phase \(2\), the model is evaluated on the evaluation set, and for each samp
 Then, we calculate the overall average prediction error and variance across all samples for defining the threshold for classification. \\We test different threshold values, both considering the variance term and ignoring it, and observe the best performance on the test set.
 
 Finally, we plot the ROC curve to determine the best threshold value.
-
-Figure \ref{fig:rocLSTM} shows the ROC curve obtained by considering all possible threshold values from the evaluation phase. The final AUC (Area Under the Curve) value is 0.9406, which represents our best result and is close to the optimal case where the AUC is 1.
+\\Figure \ref{fig:rocLSTM} shows the ROC curve obtained by considering all possible threshold values from the evaluation phase. The final AUC (Area Under the Curve) value is 0.9406, which represents our best result and is close to the optimal case where the AUC is 1.
 
 We also compute the optimal threshold value by selecting the point on the ROC curve closest to the top-left corner, which corresponds to the ideal classifier with a True Positive Rate of 1 and a False Positive Rate of 0. 
 This is done by calculating the Euclidean distance between each point \((\text{FPR}, \text{TPR})\) on the curve and the point \((0, 1)\), and choosing the threshold that minimizes this distance. 
@@ -202,6 +201,6 @@ Our third approach leverages a GRU-based autoencoder to detect anomalies through
 This project addresses Anomalous Sound Detection (ASD) for a "Slide Rail" machine, training models exclusively on normal operational sounds to replicate DCASE challenge conditions. We explore three methods: \textbf{VGGish} embeddings with\textbf{ One-Class SVM}, an \textbf{LSTM} for next-frame prediction on spectrograms, and a \textbf{GRU-based autoencoder} for sequence reconstruction.
 
 Comparative evaluation reveal that the\textbf{ LSTM-based} frame prediction model (Method II) delivers the strongest performance. It achieves a superior Area Under the \textbf{ROC Curve} (AUC) of \textbf{0.9406} and an \textbf{F1-score} of\textbf{ 0.92} for detecting anomalies.\\
-This indicates that modeling temporal sequences in spectrograms via LSTMs is more effective for identifying deviations from normal machine operation than the feature-based SVM or the GRU autoencoder's reconstruction approach for this dataset. The LSTM's ability to capture normal sound patterns and flag deviations proves most successful in this unsupervised anomaly detection task.
+This indicates that modeling temporal sequences in spectrograms via LSTMs is more effective for identifying deviations from normal machine operation than the feature-based SVM or the GRU autoencoder's reconstruction approach for this dataset. The LSTM's ability to capture normal sound patterns and flag deviations proves most successful in this type of task.
 
 \end{document}
